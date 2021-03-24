@@ -73,6 +73,12 @@ void *create_shared_memory(char *name, int size)
 */
 void *create_dynamic_memory(int size)
 {
+	int *dynamicmem = (int *)malloc(size);
+	for (int i = 0; i < size; i++)
+	{
+		dynamicmem[i] = 0;
+	}
+	return dynamicmem;
 }
 
 /* Função que liberta uma zona de memória dinâmica previamente reservada.
@@ -98,6 +104,7 @@ void destroy_shared_memory(char *name, void *ptr, int size)
 */
 void destroy_dynamic_memory(void *ptr)
 {
+	free(ptr);
 }
 
 /* Função que escreve uma operação num buffer de acesso aleatório. A
