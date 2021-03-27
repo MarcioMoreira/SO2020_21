@@ -13,7 +13,6 @@
 * o nome único para o processo.
 */
 
-//getuid()
 sem_t *semaphore_create(char *name, int value)
 {
 	sem_t *sem_full, *sem_empty;
@@ -78,8 +77,14 @@ void consume_end(struct prodcons *pc)
 
 /* Função que faz wait a um semáforo.
 */
-void semaphore_mutex_lock(sem_t *sem) {}
+void semaphore_mutex_lock(sem_t *sem)
+{
+	sem_wait(sem);
+}
 
 /* Função que faz post a um semáforo.
 */
-void semaphore_mutex_unlock(sem_t *sem) {}
+void semaphore_mutex_unlock(sem_t *sem)
+{
+	sem_post(sem);
+}
