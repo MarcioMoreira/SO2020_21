@@ -14,7 +14,7 @@ int execute_proxy(int proxy_id, struct communication_buffers *buffers, struct ma
 {
     int counter = 0;
 
-    for (;;)
+    for (;;) 
     {
         proxy_receive_operation(buffers->cli_prx->buffer, buffers, data, sems);
         if (data->terminate == 1)
@@ -27,6 +27,7 @@ int execute_proxy(int proxy_id, struct communication_buffers *buffers, struct ma
             {
                 proxy_process_operation(buffers->cli_prx->buffer, buffers->cli_prx->buffer->proxy, counter);
                 proxy_forward_operation(buffers->prx_srv->buffer, buffers, data, sems);
+                counter++;
             }
         };
     }

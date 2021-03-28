@@ -31,6 +31,7 @@ int execute_client(int client_id, struct communication_buffers *buffers, struct 
             {
                 client_process_operation(buffers->main_cli->buffer, buffers->main_cli->buffer->client, counter);
                 client_send_operation(buffers->cli_prx->buffer, buffers, data, sems);
+                counter++;
             }
         };
     }

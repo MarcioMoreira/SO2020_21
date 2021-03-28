@@ -27,6 +27,7 @@ int execute_server(int server_id, struct communication_buffers *buffers, struct 
             {
                 server_process_operation(buffers->prx_srv->buffer, buffers->prx_srv->buffer->server, counter);
                 server_forward_operation(buffers->srv_cli->buffer, buffers, data, sems);
+                counter++;
             }
         };
     }
