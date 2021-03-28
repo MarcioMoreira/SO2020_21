@@ -1,4 +1,8 @@
-
+/*
+Gonçalo Cardoso - 54415
+Marcio Moreira - 41972
+Pedro Correia - 54570
+*/
 #include "memory.h"
 #include "main.h"
 #include "client.h"

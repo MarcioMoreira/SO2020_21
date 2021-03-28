@@ -1,30 +1,30 @@
-OBJ_DIR = obj
-SRC_DIR = src 
-BIN_DIR = bin 
-INC_DIR = include
+BIN_dir = bin
+OBJ_dir = obj
+INC_dir = include
+SRC_dir = src
 
-OBJECTOS  = main.o client.o memory.o process.o proxy.o server.o synchronization.o
+OBJETOS = client.o memory.o process.o proxy.o server.o synchronization.o main.o
 
+client.o = client.h memory.h main.h
 main.o = memory.h synchronization.h memory-private.h process.h
-client.o = memory.h main.h
-memory.o = memory-private.h
-process.o = memory.h main.h
-proxy.o = memory.h main.h
-server.o = memory.h main.h
-synchronization.o = synchronization.h
+memory.o = memory.h memory-private.h
+process.o = process.h main.h
+proxy.o = proxy.h main.h
+server.o = server.h main.h
+synchronization.o = synchronization.h memory.h memory-private.h
 
-CFLAGS = -Wall -I $(INC_DIR)
-FLAGS = -lm -lrt -pthread 
 CC = gcc
+CFLAGS = -Wall -I $(INC_dir)
+FLAGS = -lm -lpthread -lrt 
 
-vpath %.o $(OBJ_DIR)
+vpath %.o $(OBJ_dir)
 
-sovaccines: $(OBJECTOS)
-	$(CC) $(FLAGS) $(addprefix $(OBJ_DIR)/,$(OBJECTOS)) -o $(BIN_DIR)/sovaccines 
+sovaccines: $(OBJETOS)
+	$(CC) $(addprefix $(OBJ_dir)/,$(OBJETOS)) -o $(BIN_dir)/sovaccines $(FLAGS)
 
-%.o: $(SRC_DIR)/%.c $($@)
-	$(CC) $(CFLAGS) -o $(OBJ_DIR)/$@ -c $<
+%.o: $(SRC_dir)/%.c $($@)
+	$(CC) $(CFLAGS) -o $(OBJ_dir)/$@ -c $<
 
 clean:
-	rm -f $(OBJ_DIR)/*.o
-	rm -f $(BIN_DIR)/sovaccines
+	rm -f $(OBJ_dir)/*.o
+	rm -f $(BIN_dir)/sovaccines

@@ -1,3 +1,8 @@
+/*
+Gonçalo Cardoso - 54415
+Marcio Moreira - 41972
+Pedro Correia - 54570
+*/
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>

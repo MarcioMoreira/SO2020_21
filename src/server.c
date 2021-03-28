@@ -1,3 +1,8 @@
+/*
+Gonçalo Cardoso - 54415
+Marcio Moreira - 41972
+Pedro Correia - 54570
+*/
 #include "memory.h"
 #include "main.h"
 
@@ -26,7 +31,7 @@ int execute_server(int server_id, struct communication_buffers *buffers, struct 
             if (data->terminate == 0)
             {
                 server_process_operation(buffers->prx_srv->buffer, buffers->prx_srv->buffer->server, counter);
-                server_forward_operation(buffers->srv_cli->buffer, buffers, data, sems);
+                server_send_answer(buffers->srv_cli->buffer, buffers, data, sems);
                 counter++;
             }
         };

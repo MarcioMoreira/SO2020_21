@@ -1,3 +1,9 @@
+/*
+Gonçalo Cardoso - 54415
+Marcio Moreira - 41972
+Pedro Correia - 54570
+*/
+
 #include <stdio.h>
 #include "memory.h"
 #include "synchronization.h"
@@ -52,11 +58,11 @@ int main(int argc, char *argv[])
 */
 void main_args(int argc, char *argv[], struct main_data *data)
 {
-    data->max_ops = argv[0];
-    data->buffers_size = argv[1];
-    data->n_clients = argv[2];
-    data->n_proxies = argv[3];
-    data->n_servers = argv[4];
+    data->max_ops = atoi(argv[0]);
+    data->buffers_size = atoi(argv[1]);
+    data->n_clients = atoi(argv[2]);
+    data->n_proxies = atoi(argv[3]);
+    data->n_servers = atoi(argv[4]);
 }
 
 /* Função que reserva a memória dinâmica necessária para a execução
@@ -76,12 +82,11 @@ void create_dynamic_memory_buffers(struct main_data *data)
 */
 void create_shared_memory_buffers(struct main_data *data, struct communication_buffers *buffers)
 {
-    create_shared_memory(buffers->main_cli, data->buffers_size);
-    create_shared_memory(buffers->cli_prx, data->buffers_size);
-    create_shared_memory(buffers->prx_srv, data->buffers_size);
-    create_shared_memory(buffers->srv_cli, data->buffers_size);
+    buffers->main_cli = create_shared_memory("main_cli", data->buffers_size);
+    buffers->cli_prx = create_shared_memory("cli_prx", data->buffers_size);
+    buffers->prx_srv = create_shared_memory("prx_srv", data->buffers_size);
+    buffers->srv_cli = create_shared_memory("srv_cli", data->buffers_size);
 
-    data->results[data->buffers_size];
     data->terminate = 0;
 }
 
@@ -92,21 +97,21 @@ void create_shared_memory_buffers(struct main_data *data, struct communication_b
 */
 void create_semaphores(struct main_data *data, struct semaphores *sems)
 {
-    semaphore_create(sems->main_cli->full, 0);
-    semaphore_create(sems->main_cli->empty, data->buffers_size);
-    semaphore_create(sems->main_cli->mutex, 1);
+    sems->main_cli->full = semaphore_create("full", 0);
+    sems->main_cli->empty = semaphore_create("empty", data->buffers_size);
+    sems->main_cli->mutex = semaphore_create("mutex", 1);
 
-    semaphore_create(sems->cli_prx->full, 0);
-    semaphore_create(sems->cli_prx->empty, data->buffers_size);
-    semaphore_create(sems->cli_prx->mutex, 1);
+    sems->cli_prx->full = semaphore_create("full", 0);
+    sems->cli_prx->empty = semaphore_create("empty", data->buffers_size);
+    sems->main_cli->mutex = semaphore_create("mutex", 1);
 
-    semaphore_create(sems->prx_srv->full, 0);
-    semaphore_create(sems->prx_srv->empty, data->buffers_size);
-    semaphore_create(sems->prx_srv->mutex, 1);
+    sems->prx_srv->full = semaphore_create("full", 0);
+    sems->prx_srv->empty = semaphore_create("empty", data->buffers_size);
+    sems->main_cli->mutex = semaphore_create("mutex", 1);
 
-    semaphore_create(sems->srv_cli->full, 0);
-    semaphore_create(sems->srv_cli->empty, data->buffers_size);
-    semaphore_create(sems->srv_cli->mutex, 1);
+    sems->srv_cli->full = semaphore_create("full", 0);
+    sems->srv_cli->empty = semaphore_create("empty", data->buffers_size);
+    sems->main_cli->mutex = semaphore_create("mutex", 1);
 }
 
 /* Função que inicia os processos dos clientes, proxies e
@@ -198,7 +203,7 @@ void read_answer(struct main_data *data, struct semaphores *sems)
     scanf("Indique a operacao que quer ler", op);
     for (int i = 0; i < data->max_ops; i++)
     {
-        if (op == data->results[i])
+        if (op == data->results[i].id)
         {
             printf("Status da operacao %c\n", data->results[i].status);
             printf("Id da operacao %d\n", data->results[i].id);
@@ -303,8 +308,19 @@ void destroy_shared_memory_buffers(struct main_data *data, struct communication_
 */
 void destroy_semaphores(struct semaphores *sems)
 {
-    semaphore_destroy(sems, sems->main_cli);
-    semaphore_destroy(sems, sems->cli_prx);
-    semaphore_destroy(sems, sems->prx_srv);
-    semaphore_destroy(sems, sems->srv_cli);
+    semaphore_destroy("full", sems->main_cli->full);
+    semaphore_destroy("empty", sems->main_cli->empty);
+    semaphore_destroy("mutex", sems->main_cli->mutex);
+
+    semaphore_destroy("full", sems->cli_prx->full);
+    semaphore_destroy("empty", sems->cli_prx->empty);
+    semaphore_destroy("mutex", sems->cli_prx->mutex);
+
+    semaphore_destroy("full", sems->prx_srv->full);
+    semaphore_destroy("empty", sems->prx_srv->empty);
+    semaphore_destroy("mutex", sems->prx_srv->mutex);
+
+    semaphore_destroy("full", sems->srv_cli->full);
+    semaphore_destroy("empty", sems->srv_cli->empty);
+    semaphore_destroy("mutex", sems->srv_cli->mutex);
 }

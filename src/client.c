@@ -1,3 +1,9 @@
+/*
+Gonçalo Cardoso - 54415
+Marcio Moreira - 41972
+Pedro Correia - 54570
+*/
+
 #include <stdio.h>
 #include "memory.h"
 #include "main.h"
