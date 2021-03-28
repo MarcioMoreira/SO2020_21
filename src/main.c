@@ -52,8 +52,6 @@ int main(int argc, char *argv[])
 */
 void main_args(int argc, char *argv[], struct main_data *data)
 {
-    //...
-
     data->max_ops = argv[0];
     data->buffers_size = argv[1];
     data->n_clients = argv[2];
@@ -131,7 +129,39 @@ void launch_processes(struct communication_buffers *buffers, struct main_data *d
 */
 void user_interaction(struct communication_buffers *buffers, struct main_data *data, struct semaphores *sems)
 {
-    //dificl
+
+    int cmd;
+    int op_counter = 0;
+    int chk = 0;
+    do
+    {
+        printf("Selecione uma opcao\n 1 - op\n2 - read \n3 - stop\n4 - help");
+        scanf("%d", cmd);
+
+        if (cmd == 1)
+        {
+            create_request(op_counter, buffers, data, sems);
+            chk++;
+        }
+        else if (cmd == 2)
+        {
+            read_answer(data, sems);
+            chk++;
+        }
+        else if (cmd == 3)
+        {
+            stop_execution(data, buffers, sems);
+            chk++;
+        }
+        else if (cmd == 4)
+        {
+            printf("op - cria uma nova operação\n");
+            printf("read - verifica o estado de uma operação\n");
+            printf("stop - termina o execução do sovaccines\n");
+            printf("help - imprime informação sobre os comandos disponiveis\n");
+        }
+
+    } while (chk == 0);
 }
 
 /* Se o limite de operações ainda não tiver sido atingido, cria uma nova
@@ -142,6 +172,17 @@ void user_interaction(struct communication_buffers *buffers, struct main_data *d
 */
 void create_request(int *op_counter, struct communication_buffers *buffers, struct main_data *data, struct semaphores *sems)
 {
+    if (op_counter < data->max_ops)
+    {
+        struct operation *op;
+        op->id = op_counter;
+
+        produce_begin(sems->main_cli);
+        write_rnd_access_buffer(buffers->main_cli, data->buffers_size, op);
+        printf("Id da operacao %d\n", op->id);
+        ++*op_counter;
+        produce_end(sems->main_cli);
+    }
 }
 
 /* Função que lê um id de operação do utilizador e verifica se a mesma
@@ -151,7 +192,22 @@ void create_request(int *op_counter, struct communication_buffers *buffers, stru
 * data->results deve ser sincronizado com as funções e semáforos
 * respetivos.
 */
-void read_answer(struct main_data *data, struct semaphores *sems);
+void read_answer(struct main_data *data, struct semaphores *sems)
+{
+    int op;
+    scanf("Indique a operacao que quer ler", op);
+    for (int i = 0; i < data->max_ops; i++)
+    {
+        if (op == data->results[i])
+        {
+            printf("Status da operacao %c\n", data->results[i].status);
+            printf("Id da operacao %d\n", data->results[i].id);
+            printf("Cliente que recebeu a operacao %d\n", data->results[i].client);
+            printf("Proxy que encaminhou a operacao %d\n", data->results[i].proxy);
+            printf("Server que recebeu a operacao %d\n", data->results[i].server);
+        }
+    }
+}
 
 /* Função que termina a execução do programa sovaccines. Deve começar por 
 * afetar a flag data->terminate com o valor 1. De seguida, e por esta
@@ -163,7 +219,15 @@ void read_answer(struct main_data *data, struct semaphores *sems);
 void stop_execution(struct main_data *data, struct communication_buffers *buffers, struct semaphores *sems)
 {
     data->terminate = 1;
-    //...
+    wakeup_processes(data, sems);
+
+    printf("Foram recebidas %d operacoes por cada cliente", data->client_stats);
+    printf("Foram recebidas %d operacoes por cada proxy", data->proxy_stats);
+    printf("Foram recebidas %d operacoes por cada servidor", data->server_stats);
+
+    destroy_semaphores(sems);
+    destroy_shared_memory_buffers(data, buffers);
+    destroy_dynamic_memory_buffers(data);
 }
 
 /* Função que acorda todos os processos adormecidos em semáforos, para que
@@ -172,7 +236,26 @@ void stop_execution(struct main_data *data, struct communication_buffers *buffer
 * onde possam estar processos adormecidos e um número de vezes igual ao 
 * máximo de processos que possam lá estar.
 */
-void wakeup_processes(struct main_data *data, struct semaphores *sems);
+void wakeup_processes(struct main_data *data, struct semaphores *sems)
+{
+    for (int i = 0; i <= data->max_ops; i++)
+    {
+        produce_end(sems->main_cli->empty);
+        produce_end(sems->cli_prx->empty);
+        produce_end(sems->prx_srv->empty);
+        produce_end(sems->srv_cli->empty);
+
+        produce_end(sems->main_cli->full);
+        produce_end(sems->cli_prx->full);
+        produce_end(sems->prx_srv->full);
+        produce_end(sems->srv_cli->full);
+
+        produce_end(sems->main_cli->mutex);
+        produce_end(sems->cli_prx->mutex);
+        produce_end(sems->prx_srv->mutex);
+        produce_end(sems->srv_cli->mutex);
+    }
+}
 
 /* Função que espera que todos os processos previamente iniciados terminem,
 * incluindo clientes, proxies e servidores. Para tal, pode usar a função 
