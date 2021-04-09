@@ -3,6 +3,10 @@ Gonçalo Cardoso - 54415
 Marcio Moreira - 41972
 Pedro Correia - 54570
 */
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -50,7 +54,7 @@ void *create_dynamic_memory(int size)
 	{
 		dynamicmem[i] = 0;
 	}
-	return (void *)dynamicmem;
+	return dynamicmem;
 }
 
 /* Função que liberta uma zona de memória dinâmica previamente reservada.
@@ -104,10 +108,10 @@ void write_rnd_access_buffer(struct rnd_access_buffer *buffer, int buffer_size, 
 */
 void write_circular_buffer(struct circular_buffer *buffer, int buffer_size, struct operation *op)
 {
-	while (((*(buffer->in) + 1) % buffer_size) == buffer->out)
+	while (((*(buffer->in) + 1) % buffer_size) == *buffer->out)
 		;
 	buffer->buffer[*(buffer->in)] = *op;
-	buffer->in = (*(buffer->in) + 1) % buffer_size;
+	*buffer->in = (*(buffer->in) + 1) % buffer_size;
 }
 
 /* Função que lê uma operação de um buffer de acesso aleatório, se houver
@@ -137,5 +141,5 @@ void read_circular_buffer(struct circular_buffer *buffer, int buffer_size, struc
 	while (buffer->in == buffer->out)
 		;
 	*op = buffer->buffer[*(buffer->out)];
-	buffer->out = (*(buffer->out) + 1) % buffer_size;
+	*buffer->out = (*(buffer->out) + 1) % buffer_size;
 }

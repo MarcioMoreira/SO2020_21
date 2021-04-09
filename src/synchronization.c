@@ -28,6 +28,7 @@ sem_t *semaphore_create(char *name, int value)
 		perror("sem");
 		exit(6);
 	}
+	return sem;
 }
 
 /* Função que destroi o semáforo passado em argumento.

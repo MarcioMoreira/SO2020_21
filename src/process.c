@@ -22,32 +22,34 @@ Pedro Correia - 54570
 */
 int launch_process(int process_id, int process_code, struct communication_buffers *buffers, struct main_data *data, struct semaphores *sems)
 {
-    int pidfilho;
+    int pidfilho = 0;
+    int status=0;
+    process_id = fork();
+
+    if ((process_id) < 0)
     {
-        process_id = fork();
-
-        if ((process_id) == -1)
-        {
-            perror(data);
-            exit(1);
-        }
-        if (process_id == 0)
-        {
-            pidfilho = getpid();
-            if (process_code == 0)
-                execute_client(pidfilho, buffers, data, sems);
-
-            if (process_code == 1)
-                execute_proxy(pidfilho, buffers, data, sems);
-
-            if (process_code == 2)
-                execute_server(pidfilho, buffers, data, sems);
-        }
-        else
-        {
-            return pidfilho;
-        }
+        perror("process");
+        exit(1);
+        status = -1;
     }
+    if (process_id == 0)
+    {
+        pidfilho = getpid();
+        if (process_code == 0)
+            execute_client(pidfilho, buffers, data, sems);
+
+        if (process_code == 1)
+            execute_proxy(pidfilho, buffers, data, sems);
+
+        if (process_code == 2)
+            execute_server(pidfilho, buffers, data, sems);
+    }
+    else
+    {
+        return pidfilho;
+        status = -1;
+    }
+    return status;
 }
 
 /* Função que espera que um processo termine através da função waitpid. 

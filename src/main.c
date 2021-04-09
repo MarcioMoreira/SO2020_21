@@ -5,6 +5,7 @@ Pedro Correia - 54570
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "memory.h"
 #include "synchronization.h"
 #include "memory-private.h"
@@ -71,7 +72,12 @@ void main_args(int argc, char *argv[], struct main_data *data)
 */
 void create_dynamic_memory_buffers(struct main_data *data)
 {
-    create_dynamic_memory(data->buffers_size);
+    data->client_pids = create_dynamic_memory(data->buffers_size);
+    data->proxy_pids = create_dynamic_memory(data->buffers_size);
+    data->server_pids = create_dynamic_memory(data->buffers_size);
+    data->client_stats = create_dynamic_memory(data->buffers_size);
+    data->proxy_stats = create_dynamic_memory(data->buffers_size);
+    data->server_stats = create_dynamic_memory(data->buffers_size);
 }
 
 /* Função que reserva a memória partilhada necessária para a execução do
@@ -179,7 +185,7 @@ void create_request(int *op_counter, struct communication_buffers *buffers, stru
 {
     if (*op_counter < data->max_ops)
     {
-        struct operation *op;
+        struct operation *op = 0;
         op->id = *op_counter;
 
         produce_begin(sems->main_cli);
@@ -278,7 +284,12 @@ void write_statistics(struct main_data *data)
 */
 void destroy_dynamic_memory_buffers(struct main_data *data)
 {
-    destroy_dynamic_memory(data);
+    destroy_dynamic_memory(data->client_pids);
+    destroy_dynamic_memory(data->client_stats);
+    destroy_dynamic_memory(data->proxy_pids);
+    destroy_dynamic_memory(data->proxy_stats);
+    destroy_dynamic_memory(data->server_pids);
+    destroy_dynamic_memory(data->server_stats);
 }
 
 /* Função que liberta todos os buffers de memória partilhada previamente

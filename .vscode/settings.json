@@ -1,7 +1,8 @@
 {
     "files.associations": {
         "stat.h": "c",
-        "memory-private.h": "c"
+        "memory-private.h": "c",
+        "cstdio": "c"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }
