@@ -73,6 +73,7 @@ void server_process_operation(struct operation *op, int server_id, int *counter)
 void server_send_answer(struct operation *op, struct communication_buffers *buffers, struct main_data *data, struct semaphores *sems)
 {
     produce_begin(sems->prx_srv);
-    write_rnd_access_buffer(buffers, data->buffers_size, op);
+    write_circular_buffer(buffers->srv_cli, data->buffers_size, op);
     consume_end(sems->prx_srv);
+    
 }

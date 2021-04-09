@@ -103,15 +103,15 @@ void create_semaphores(struct main_data *data, struct semaphores *sems)
 
     sems->cli_prx->full = semaphore_create("full", 0);
     sems->cli_prx->empty = semaphore_create("empty", data->buffers_size);
-    sems->main_cli->mutex = semaphore_create("mutex", 1);
+    sems->cli_prx->mutex = semaphore_create("mutex", 1);
 
     sems->prx_srv->full = semaphore_create("full", 0);
     sems->prx_srv->empty = semaphore_create("empty", data->buffers_size);
-    sems->main_cli->mutex = semaphore_create("mutex", 1);
+    sems->prx_srv->mutex = semaphore_create("mutex", 1);
 
     sems->srv_cli->full = semaphore_create("full", 0);
     sems->srv_cli->empty = semaphore_create("empty", data->buffers_size);
-    sems->main_cli->mutex = semaphore_create("mutex", 1);
+    sems->srv_cli->mutex = semaphore_create("mutex", 1);
 }
 
 /* Função que inicia os processos dos clientes, proxies e
@@ -121,9 +121,9 @@ void create_semaphores(struct main_data *data, struct semaphores *sems)
 */
 void launch_processes(struct communication_buffers *buffers, struct main_data *data, struct semaphores *sems)
 {
-    data->client_stats = launch_process(data->client_pids, 0, buffers, data, sems);
-    data->proxy_stats = launch_process(data->proxy_pids, 1, buffers, data, sems);
-    data->server_stats = launch_process(data->server_pids, 2, buffers, data, sems);
+    *data->client_stats = launch_process(*data->client_pids, 0, buffers, data, sems);
+    *data->proxy_stats = launch_process(*data->proxy_pids, 1, buffers, data, sems);
+    *data->server_stats = launch_process(*data->server_pids, 2, buffers, data, sems);
 }
 
 /* Função que faz interação do utilizador com o sistema, podendo receber 4 comandos:
@@ -135,17 +135,17 @@ void launch_processes(struct communication_buffers *buffers, struct main_data *d
 void user_interaction(struct communication_buffers *buffers, struct main_data *data, struct semaphores *sems)
 {
 
-    int cmd;
+    int cmd = 0;
     int op_counter = 0;
     int chk = 0;
     do
     {
         printf("Selecione uma opcao\n 1 - op\n2 - read \n3 - stop\n4 - help");
-        scanf("%d", cmd);
+        scanf("%d", &cmd);
 
         if (cmd == 1)
         {
-            create_request(op_counter, buffers, data, sems);
+            create_request(&op_counter, buffers, data, sems);
             chk++;
         }
         else if (cmd == 2)
@@ -177,10 +177,10 @@ void user_interaction(struct communication_buffers *buffers, struct main_data *d
 */
 void create_request(int *op_counter, struct communication_buffers *buffers, struct main_data *data, struct semaphores *sems)
 {
-    if (op_counter < data->max_ops)
+    if (*op_counter < data->max_ops)
     {
         struct operation *op;
-        op->id = op_counter;
+        op->id = *op_counter;
 
         produce_begin(sems->main_cli);
         write_rnd_access_buffer(buffers->main_cli, data->buffers_size, op);
@@ -199,8 +199,8 @@ void create_request(int *op_counter, struct communication_buffers *buffers, stru
 */
 void read_answer(struct main_data *data, struct semaphores *sems)
 {
-    int op;
-    scanf("Indique a operacao que quer ler", op);
+    int op = 0;
+    scanf("Indique a operacao que quer ler:\n %d", &op);
     for (int i = 0; i < data->max_ops; i++)
     {
         if (op == data->results[i].id)
@@ -223,12 +223,12 @@ void read_answer(struct main_data *data, struct semaphores *sems)
 */
 void stop_execution(struct main_data *data, struct communication_buffers *buffers, struct semaphores *sems)
 {
-    data->terminate = 1;
+    *data->terminate = 1;
     wakeup_processes(data, sems);
 
-    printf("Foram recebidas %d operacoes por cada cliente", data->client_stats);
-    printf("Foram recebidas %d operacoes por cada proxy", data->proxy_stats);
-    printf("Foram recebidas %d operacoes por cada servidor", data->server_stats);
+    printf("Foram recebidas %p operacoes por cada cliente", data->client_stats);
+    printf("Foram recebidas %p operacoes por cada proxy", data->proxy_stats);
+    printf("Foram recebidas %p operacoes por cada servidor", data->server_stats);
 
     destroy_semaphores(sems);
     destroy_shared_memory_buffers(data, buffers);
@@ -245,20 +245,10 @@ void wakeup_processes(struct main_data *data, struct semaphores *sems)
 {
     for (int i = 0; i <= data->max_ops; i++)
     {
-        produce_end(sems->main_cli->empty);
-        produce_end(sems->cli_prx->empty);
-        produce_end(sems->prx_srv->empty);
-        produce_end(sems->srv_cli->empty);
-
-        produce_end(sems->main_cli->full);
-        produce_end(sems->cli_prx->full);
-        produce_end(sems->prx_srv->full);
-        produce_end(sems->srv_cli->full);
-
-        produce_end(sems->main_cli->mutex);
-        produce_end(sems->cli_prx->mutex);
-        produce_end(sems->prx_srv->mutex);
-        produce_end(sems->srv_cli->mutex);
+        produce_end(sems->main_cli);
+        produce_end(sems->cli_prx);
+        produce_end(sems->prx_srv);
+        produce_end(sems->srv_cli);
     }
 }
 
@@ -268,11 +258,9 @@ void wakeup_processes(struct main_data *data, struct semaphores *sems)
 */
 void wait_processes(struct main_data *data)
 {
-    wait_process(data->client_pids);
-    wait_process(data->proxy_pids);
-    wait_process(data->server_pids);
-
-    printf("wait processes");
+    wait_process(*data->client_pids);
+    wait_process(*data->proxy_pids);
+    wait_process(*data->server_pids);
 }
 
 /* Função que imprime as estatisticas finais do sovaccines, nomeadamente quantas
@@ -280,9 +268,9 @@ void wait_processes(struct main_data *data)
 */
 void write_statistics(struct main_data *data)
 {
-    printf("O cliente fez %d operações. \n", data->client_stats);
-    printf("O proxy fez %d operações. \n", data->proxy_stats);
-    printf("O server fez %d operações. \n", data->server_stats);
+    printf("O cliente fez %p operações. \n", data->client_stats);
+    printf("O proxy fez %p operações. \n", data->proxy_stats);
+    printf("O server fez %p operações. \n", data->server_stats);
 }
 
 /* Função que liberta todos os buffers de memória dinâmica previamente
@@ -298,10 +286,10 @@ void destroy_dynamic_memory_buffers(struct main_data *data)
 */
 void destroy_shared_memory_buffers(struct main_data *data, struct communication_buffers *buffers)
 {
-    destroy_shared_memory(buffers->main_cli, buffers, data->buffers_size);
-    destroy_shared_memory(buffers->cli_prx, buffers, data->buffers_size);
-    destroy_shared_memory(buffers->prx_srv, buffers, data->buffers_size);
-    destroy_shared_memory(buffers->srv_cli, buffers, data->buffers_size);
+    destroy_shared_memory("main_cli", buffers, data->buffers_size);
+    destroy_shared_memory("cli_prx", buffers, data->buffers_size);
+    destroy_shared_memory("prx_srv", buffers, data->buffers_size);
+    destroy_shared_memory("srv_cli", buffers, data->buffers_size);
 }
 
 /* Função que liberta todos os semáforos da estrutura semaphores.

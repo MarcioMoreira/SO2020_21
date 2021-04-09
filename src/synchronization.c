@@ -21,11 +21,11 @@ Pedro Correia - 54570
 
 sem_t *semaphore_create(char *name, int value)
 {
-	sem_t *sem_full, *sem_empty;
-	sem_full = sem_open(name, O_CREAT, 0xFFFFFFFF, value);
-	if (sem_full == SEM_FAILED)
+	sem_t *sem;
+	sem = sem_open(name, O_CREAT, 0xFFFFFFFF, value);
+	if (sem == SEM_FAILED)
 	{
-		perror("full");
+		perror("sem");
 		exit(6);
 	}
 }

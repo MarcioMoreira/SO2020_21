@@ -45,7 +45,7 @@ void *create_shared_memory(char *name, int size)
 */
 void *create_dynamic_memory(int size)
 {
-	int *dynamicmem = (int *)malloc(size);
+	int *dynamicmem = (int *)malloc(size); //cast para tornar dynamicmmem num int*
 	for (int i = 0; i < size; i++)
 	{
 		dynamicmem[i] = 0;

@@ -34,8 +34,6 @@ int launch_process(int process_id, int process_code, struct communication_buffer
         if (process_id == 0)
         {
             pidfilho = getpid();
-            sem_post(sems);
-
             if (process_code == 0)
                 execute_client(pidfilho, buffers, data, sems);
 
@@ -47,7 +45,6 @@ int launch_process(int process_id, int process_code, struct communication_buffer
         }
         else
         {
-            sem_wait(sems);
             return pidfilho;
         }
     }
